@@ -350,36 +350,71 @@ function group(array, keySelector, valueSelector) {
 
 const cssSelectorBuilder = {
   currValue: '',
+  throw1:
+    'Element, id and pseudo-element should not occur more then one time inside the selector',
+  throw2:
+    'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+
   element(value) {
-    cssSelectorBuilder.currValue = value;
-    return cssSelectorBuilder.currValue;
+    if (this.currValue.includes('#')) throw Error(this.throw2);
+    if (this.currValue) throw Error(this.throw1);
+    const obj = {};
+    Object.setPrototypeOf(obj, cssSelectorBuilder);
+    obj.currValue = `${this.currValue}${value}`;
+    return obj;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    if (this.currValue.includes('.') || this.currValue.includes('::'))
+      throw Error(this.throw2);
+    if (this.currValue.includes('#')) throw Error(this.throw1);
+    const obj = {};
+    Object.setPrototypeOf(obj, cssSelectorBuilder);
+    obj.currValue = `${this.currValue}#${value}`;
+    return obj;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    if (this.currValue.includes('[')) throw Error(this.throw2);
+    const obj = {};
+    Object.setPrototypeOf(obj, cssSelectorBuilder);
+    obj.currValue = `${this.currValue}.${value}`;
+    return obj;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    if (this.currValue.includes(':')) throw Error(this.throw2);
+    const obj = {};
+    Object.setPrototypeOf(obj, cssSelectorBuilder);
+    obj.currValue = `${this.currValue}[${value}]`;
+    return obj;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    if (this.currValue.includes('::')) throw Error(this.throw2);
+    const obj = {};
+    Object.setPrototypeOf(obj, cssSelectorBuilder);
+    obj.currValue = `${this.currValue}:${value}`;
+    return obj;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    if (this.currValue.includes('::')) throw Error(this.throw1);
+    const obj = {};
+    Object.setPrototypeOf(obj, cssSelectorBuilder);
+    obj.currValue = `${this.currValue}::${value}`;
+    return obj;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const obj = {};
+    Object.setPrototypeOf(obj, cssSelectorBuilder);
+    obj.currValue = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return obj;
   },
+
   stringify() {
-    console.log(cssSelectorBuilder.currValue);
+    return this.currValue;
   },
 };
 
